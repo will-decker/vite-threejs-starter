@@ -1,12 +1,16 @@
 import './styles.css';
 import * as THREE from 'three';
 import { BasicThreejsSetup } from './BasicThreejsSetup';
+import { Road } from './Road';
 
 export class App extends BasicThreejsSetup {
-  constructor(container) {
+  constructor(container, options) {
     super(container);
-    this.camera.position.z = 50;
-    // Dp stuff
+    this.camera.position.z = -4;
+    this.camera.position.y = 7;
+    this.camera.position.x = 0;
+
+    this.road = new Road(this, options);
   }
   loadAssets() {
     return new Promise((resolve, reject) => {
@@ -17,17 +21,9 @@ export class App extends BasicThreejsSetup {
     });
   }
   init() {
-    const geometry = new THREE.BoxBufferGeometry(10, 10, 10);
-    const material = new THREE.MeshNormalMaterial();
-    const mesh = new THREE.Mesh(geometry, material);
-    this.mesh = mesh;
-    this.scene.add(mesh);
-
+    this.road.init();
     this.tick();
   }
-  update(delta) {
-    this.mesh.rotateX(delta);
-    this.mesh.rotateY(delta);
-  }
+  update(delta) {}
   dispose() {}
 }
