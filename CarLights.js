@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 export class CarLights {
-  constructor(webgl, options) {
+  constructor(webgl, options, color) {
     this.webgl = webgl;
     this.options = options;
+    this.color = color;
   }
   init() {
     const options = this.options;
@@ -15,11 +16,14 @@ export class CarLights {
     instanced.instanceCount = options.nPairs * 2;
 
     let aOffset = [];
+    let aMetrics = [];
 
     let sectionWidth = options.roadWidth / options.roadSections;
 
     for (let i = 0; i < options.nPairs; i++) {
-      let radius = 1;
+      let radius = Math.random() * 0.1 + 0.1;
+      let length =
+        Math.random() * options.length * 0.08 + options.length * 0.02;
       // 1a. Get it's lane index
       // Instead of random, keep lights per lane consistent
       let section = i % 3;
@@ -41,11 +45,22 @@ export class CarLights {
       aOffset.push(sectionX + carWidth / 2 + offsetX);
       aOffset.push(offsetY);
       aOffset.push(-offsetZ);
+
+      aMetrics.push(radius);
+      aMetrics.push(length);
+
+      aMetrics.push(radius);
+      aMetrics.push(length);
     }
     // Add the offset to the instanced geometry.
     instanced.setAttribute(
       'aOffset',
       new THREE.InstancedBufferAttribute(new Float32Array(aOffset), 3, false)
+    );
+
+    instanced.setAttribute(
+      'aMetrics',
+      new THREE.InstancedBufferAttribute(new Float32Array(aMetrics), 2, false)
     );
 
     // let material = new THREE.MeshBasicMaterial({ color: 0xfafafa });
@@ -54,12 +69,14 @@ export class CarLights {
       fragmentShader,
       vertexShader,
       uniforms: {
-        uColor: new THREE.Uniform(new THREE.Color(0xfafafa)),
+        uColor: new THREE.Uniform(new THREE.Color(this.color)),
       },
     });
     let mesh = new THREE.Mesh(instanced, material);
     mesh.frustumCulled = false;
-    console.log(mesh);
+
+    this.mesh = mesh;
+
     this.webgl.scene.add(mesh);
   }
 }
@@ -74,10 +91,18 @@ uniform vec3 uColor;
 
 const vertexShader = `
 attribute vec3 aOffset;
+attribute vec2 aMetrics;
   void main() {
     vec3 transformed = position.xyz;
     
+    
+    float radius = aMetrics.r;
+    // GLSL reserves length name
+    float len = aMetrics.g;
 
+    
+    transformed.xy *= radius; 
+    transformed.z *= len;
 
 		// Keep them separated to make the next step easier!
 	   transformed.z = transformed.z + aOffset.z;

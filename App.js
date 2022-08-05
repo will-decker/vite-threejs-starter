@@ -8,13 +8,14 @@ export class App extends BasicThreejsSetup {
     super(container);
     // this.camera.position.z = 50;
     // Dp stuff
+    this.options = options;
     this.camera.position.z = -5;
     this.camera.position.y = 7;
     this.camera.position.x = 0;
 
     this.road = new Road(this, options);
-    this.leftLights = new CarLights(this, options);
-    console.log(this.leftLights);
+    this.leftLights = new CarLights(this, options, 0xff102a);
+    this.rightLights = new CarLights(this, options, 0xfafafa);
   }
   loadAssets() {
     return new Promise((resolve, reject) => {
@@ -26,9 +27,17 @@ export class App extends BasicThreejsSetup {
   }
   init() {
     // this.scene.add(mesh);
-
+    const options = this.options;
     this.road.init();
     this.leftLights.init();
+    this.leftLights.mesh.position.setX(
+      -options.roadWidth / 2 - options.islandWidth / 2
+    );
+
+    this.rightLights.init();
+    this.rightLights.mesh.position.setX(
+      options.roadWidth / 2 + options.islandWidth / 2
+    );
 
     this.tick();
   }
