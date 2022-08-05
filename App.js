@@ -41,6 +41,10 @@ export class App extends BasicThreejsSetup {
 
     this.tick();
   }
-  update(delta) {}
+  update(delta) {
+    let time = this.clock.elapsedTime;
+    this.leftLights.update(time);
+    this.rightLights.update(time);
+  }
   dispose() {}
 }

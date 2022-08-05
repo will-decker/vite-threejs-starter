@@ -70,6 +70,7 @@ export class CarLights {
       vertexShader,
       uniforms: {
         uColor: new THREE.Uniform(new THREE.Color(this.color)),
+        uTime: new THREE.Uniform(0),
       },
     });
     let mesh = new THREE.Mesh(instanced, material);
@@ -78,6 +79,10 @@ export class CarLights {
     this.mesh = mesh;
 
     this.webgl.scene.add(mesh);
+  }
+
+  update(t) {
+    this.mesh.material.uniforms.uTime.value = t;
   }
 }
 
@@ -92,6 +97,8 @@ uniform vec3 uColor;
 const vertexShader = `
 attribute vec3 aOffset;
 attribute vec2 aMetrics;
+uniform float uTime;
+
   void main() {
     vec3 transformed = position.xyz;
     
@@ -100,15 +107,19 @@ attribute vec2 aMetrics;
     // GLSL reserves length name
     float len = aMetrics.g;
 
-    
     transformed.xy *= radius; 
     transformed.z *= len;
 
-		// Keep them separated to make the next step easier!
-	   transformed.z = transformed.z + aOffset.z;
-        transformed.xy += aOffset.xy;
+    // 1. Add time, and it's position to make it move
+    float zOffset = uTime + aOffset.z;
+
+    // 2. Then place them in the correct position
+    transformed.z += zOffset;
+
+		
+    transformed.xy += aOffset.xy;
 	
-        vec4 mvPosition = modelViewMatrix * vec4(transformed,1.);
-        gl_Position = projectionMatrix * mvPosition;
+    vec4 mvPosition = modelViewMatrix * vec4(transformed,1.);
+    gl_Position = projectionMatrix * mvPosition;
 	}
 `;
