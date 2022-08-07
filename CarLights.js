@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 export class CarLights {
-  constructor(webgl, options, color) {
+  constructor(webgl, options, color, speed) {
     this.webgl = webgl;
     this.options = options;
     this.color = color;
+    this.speed = speed;
   }
   init() {
     const options = this.options;
@@ -71,6 +72,8 @@ export class CarLights {
       uniforms: {
         uColor: new THREE.Uniform(new THREE.Color(this.color)),
         uTime: new THREE.Uniform(0),
+        uSpeed: new THREE.Uniform(this.speed),
+        uTravelLength: new THREE.Uniform(options.length),
       },
     });
     let mesh = new THREE.Mesh(instanced, material);
@@ -98,11 +101,13 @@ const vertexShader = `
 attribute vec3 aOffset;
 attribute vec2 aMetrics;
 uniform float uTime;
+uniform float uSpeed;
+uniform float uTravelLength;
 
   void main() {
     vec3 transformed = position.xyz;
     
-    
+    // 1. Set the radius and length
     float radius = aMetrics.r;
     // GLSL reserves length name
     float len = aMetrics.g;
@@ -110,13 +115,13 @@ uniform float uTime;
     transformed.xy *= radius; 
     transformed.z *= len;
 
-    // 1. Add time, and it's position to make it move
-    float zOffset = uTime + aOffset.z;
+    // 2. Add time, and it's position to make it move
+    float zOffset = uTime * uSpeed + aOffset.z;
+    zOffset = len - mod(zOffset, uTravelLength);
 
-    // 2. Then place them in the correct position
-    transformed.z += zOffset;
+    // 3. Then place them in the correct position
+    transformed.z = transformed.z + zOffset;
 
-		
     transformed.xy += aOffset.xy;
 	
     vec4 mvPosition = modelViewMatrix * vec4(transformed,1.);
