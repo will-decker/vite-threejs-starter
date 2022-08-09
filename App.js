@@ -88,6 +88,7 @@ export class App extends BasicThreejsSetup {
     let time = this.clock.elapsedTime + this.timeOffset;
     this.leftLights.update(time);
     this.rightLights.update(time);
+    this.road.update(time);
 
     let fovChange = lerp(this.camera.fov, this.fovTarget, lerpT);
     if (fovChange !== 0) {
